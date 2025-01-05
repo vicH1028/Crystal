@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Page</title>
+    <style>
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .image-preview {
+            position: relative;
+            display: inline-block;
+            max-width: 150px;
+        }
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+            text-align: center;
+            line-height: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the First Page</h1>
+    <p>This is the content of the first page. You can edit this content as you like.</p>
+    <textarea id="text-input" rows="5" cols="50" placeholder="Enter your text here"></textarea>
+    <br><br>
+    <p>Upload your images (up to 5):</p>
+    <input type="file" id="image-input" accept="image/*" multiple>
+    <div class="image-container" id="image-container"></div>
+    <br>
+    <button type="submit" onclick="generateSecondPage()">Generate Second Page</button>
+
+    <script>
+        const imageContainer = document.getElementById("image-container");
+        const imageInput = document.getElementById("image-input");
+        let images = []; // Array to store image data
+
+        // Handle image uploads
+        imageInput.addEventListener("change", function () {
+            const files = Array.from(imageInput.files);
+
+            // Limit the number of images to 5
+            if (images.length + files.length > 5) {
+                alert("You can only upload up to 5 images.");
+                return;
+            }
+
+            // Read and display each image
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imageUrl = e.target.result;
+
+                    // Add image to the array
+                    images.push(imageUrl);
+
+                    // Create image preview element
+                    const imagePreview = document.createElement("div");
+                    imagePreview.classList.add("image-preview");
+                    imagePreview.innerHTML = `
+                        <img src="${imageUrl}" alt="Uploaded Image">
+                        <button class="delete-btn" onclick="deleteImage('${imageUrl}')">&times;</button>
+                    `;
+                    imageContainer.appendChild(imagePreview);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Clear the input value to allow re-upload of the same file
+            imageInput.value = "";
+        });
+
+        // Delete an image
+        function deleteImage(imageUrl) {
+            // Remove from the array
+            images = images.filter((img) => img !== imageUrl);
+
+            // Remove from the DOM
+            const imagePreview = Array.from(imageContainer.children).find((child) =>
+                child.querySelector("img").src === imageUrl
+            );
+            if (imagePreview) {
+                imageContainer.removeChild(imagePreview);
+            }
+        }
+
+        // Generate the second page
+        function generateSecondPage() {
+            const textInput = document.getElementById("text-input").value;
+            const formattedText = textInput.replace(/\n/g, "<br>");
+            const imagesHTML = images
+                .map((img, index) => `<img src="${img}" alt="Uploaded Image ${index + 1}" style="max-width: 300px; margin: 10px;">`)
+                .join("");
+
+            const secondPageContent = `
+                <html>
+                <head><title>Second Page</title></head>
+                # 这里是用来修改生成页面里面的框架信息的
+                
+                <body>
+                    <h1>Welcome to the Second Page</h1>
+                    <p>This is the content of the second page. It is a static page that displays the information from the first page.</p>
+                    <p>${formattedText}</p>
+                    <div>${imagesHTML}</div>
+                </body>
+                </html>
+            `;
+            const secondPage = window.open("", "_blank");
+            secondPage.document.open();
+            secondPage.document.write(secondPageContent);
+            secondPage.document.close();
+        }
+    </script>
+</body>
+</html>
